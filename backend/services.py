@@ -49,23 +49,25 @@ Now produce the JSON object (no prose, no extra keys).
         """Generate risk profile from user answers"""
         prompt = self.create_prompt(answers)
         
-        # Call LLM
-        raw = call_ollama(prompt)
-        
         try:
+            # Call LLM using the same function from get_json.py
+            raw = call_ollama(prompt)
             obj = json.loads(raw)
             validate(instance=obj, schema=SCHEMA)
         except (json.JSONDecodeError, ValidationError) as e:
-            # Retry once if validation fails
+            # Retry once if validation fails (same logic as get_json.py)
             retry_prompt = prompt + f"\nPrevious output failed schema validation: {e}. Return ONLY corrected JSON."
             raw = call_ollama(retry_prompt)
             obj = json.loads(raw)
             validate(instance=obj, schema=SCHEMA)
+        except Exception as e:
+            # If Ollama fails, provide a more helpful error
+            raise Exception(f"Failed to connect to Ollama service: {str(e)}. Make sure Ollama is running on localhost:11434 with the 'risk-profiler' model.")
         
         # Create profile object
         profile = RiskProfile(**obj)
         
-        # Calculate axes
+        # Calculate axes using the exact same functions as get_json.py
         axes = {
             "time_horizon": map_horizon(profile.timeline_years),
             "loss_aversion": enum_map_loss(profile.loss_aversion.value),
@@ -74,7 +76,7 @@ Now produce the JSON object (no prose, no extra keys).
             "knowledge_caution": map_knowledge(profile.knowledge_level.value),
         }
         
-        # Calculate score and label
+        # Calculate score and label using the exact same function as get_json.py
         score, label = composite(obj)
         
         return ProfileResponse(

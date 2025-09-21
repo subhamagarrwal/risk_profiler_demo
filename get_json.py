@@ -198,7 +198,7 @@ if __name__=="__main__":
         # Create synthetic data if real data fails
         import datetime
         start_date = pd.to_datetime("2014-01-01")
-        end_date = pd.to_datetime("2024-01-01")
+        end_date = pd.to_datetime("2025-01-01")
         dates = pd.date_range(start_date, end_date, freq="ME")
         
         # Synthetic returns (approximate historical patterns)
