@@ -176,18 +176,44 @@ if __name__=="__main__":
     w_user = choose_weights(label, "baseline", axes)
     print("User weights:", w_user)
 
-    # Data
+    # Data - try to fetch market data
     tickers = {
         "equity": "NIFTYBEES.NS",
         "bonds":  "NETFLTGILT.NS",
         "cash":   "LIQUIDBEES.NS",
-       
     }
-    prices = download_sleeves(tickers, start="2014-01-01")
-    mclose = prices.resample("ME").last()
-    rets = mclose.pct_change().dropna()
-    if rets.empty:
-       raise ValueError("Empty returns after alignment-> check ticker ka start dates.")
+    
+    try:
+        print("\n🔄 Downloading market data...")
+        prices = download_sleeves(tickers, start="2014-01-01")
+        mclose = prices.resample("ME").last()
+        rets = mclose.pct_change().dropna()
+        if rets.empty:
+           raise ValueError("Empty returns after alignment-> check ticker ka start dates.")
+        print("✅ Market data loaded successfully!\n")
+    except Exception as e:
+        print(f"❌ Error loading market data: {e}")
+        print("📊 Using synthetic data for demonstration...")
+        
+        # Create synthetic data if real data fails
+        import datetime
+        start_date = pd.to_datetime("2014-01-01")
+        end_date = pd.to_datetime("2024-01-01")
+        dates = pd.date_range(start_date, end_date, freq="ME")
+        
+        # Synthetic returns (approximate historical patterns)
+        np.random.seed(42)  # For reproducible results
+        equity_rets = np.random.normal(0.08/12, 0.15/np.sqrt(12), len(dates))  # 8% annual, 15% vol
+        bonds_rets = np.random.normal(0.06/12, 0.08/np.sqrt(12), len(dates))   # 6% annual, 8% vol  
+        cash_rets = np.random.normal(0.04/12, 0.02/np.sqrt(12), len(dates))    # 4% annual, 2% vol
+        
+        rets = pd.DataFrame({
+            'equity': equity_rets,
+            'bonds': bonds_rets, 
+            'cash': cash_rets
+        }, index=dates)
+        
+        print("📈 Using synthetic market data with historical return characteristics")
 
     compare = {
         "Your Mix": w_user,
