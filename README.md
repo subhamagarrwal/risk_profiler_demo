@@ -39,6 +39,21 @@ ollama list
 ```
 
 ### 2. Start Backend API
+
+**Windows (using batch file):**
+```bash
+# Double-click start_backend.bat or run:
+start_backend.bat
+```
+
+**Mac/Linux (using shell script):**
+```bash
+# Make script executable and run:
+chmod +x start_backend.sh
+./start_backend.sh
+```
+
+**Manual startup (all platforms):**
 ```bash
 cd backend
 
@@ -54,6 +69,21 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 Backend will be available at http://localhost:8000
 
 ### 3. Start Frontend
+
+**Windows (using batch file):**
+```bash
+# Double-click start_frontend.bat or run:
+start_frontend.bat
+```
+
+**Mac/Linux (using shell script):**
+```bash
+# Make script executable and run:
+chmod +x start_frontend.sh
+./start_frontend.sh
+```
+
+**Manual startup (all platforms):**
 ```bash
 cd frontend
 
