@@ -5,28 +5,57 @@ import matplotlib.pyplot as plt
 from backtest import cagr, max_drawdown, time_to_recover, download_sleeves
 
 SCHEMA = {
-  "type":"object",
-  "properties":{
-    "goal":{"type":"string"},
-    "timeline_years":{"type":"number"},
-    "loss_aversion":{"type":"string","enum":["very_low","low","moderate","high","very_high"]},
-    "liquidity_need":{"type":"string","enum":["low","moderate","high"]},
-    "income_stability":{"type":"string","enum":["stable","variable","unstable"]},
-    "knowledge_level":{"type":"string","enum":["novice","intermediate","advanced"]},
-    "notes":{"type":"string"},
-    "confidences":{
-      "type":"object",
-      "properties":{
-        "timeline_years":{"type":"number"},
-        "loss_aversion":{"type":"number"},
-        "liquidity_need":{"type":"number"}
+  "type": "object",
+  "properties": {
+    "goal": {
+      "type": ["string", "null"],
+      "default": "steady growth"
+    },
+    "timeline_years": {
+      "type": ["number", "null"],
+      "default": 3
+    },
+    "loss_aversion": {
+      "type": "string",
+      "enum": ["very_low", "low", "moderate", "high", "very_high"],
+      "default": "moderate"
+    },
+    "liquidity_need": {
+      "type": "string",
+      "enum": ["low", "moderate", "high"],
+      "default": "moderate"
+    },
+    "income_stability": {
+      "type": "string",
+      "enum": ["stable", "variable", "unstable"],
+      "default": "variable"
+    },
+    "knowledge_level": {
+      "type": "string",
+      "enum": ["novice", "intermediate", "advanced"],
+      "default": "novice"
+    },
+    "notes": {
+      "type": ["string", "null"],
+      "default": ""
+    },
+    "confidences": {
+      "type": ["object","null"],
+      "default": {
+        "timeline_years": 3,
+        "loss_aversion": 0.5,
+        "liquidity_need": 0.5
+      },
+      "properties": {
+        "timeline_years": {"type": ["number","null"], "default": 3},
+        "loss_aversion": {"type": ["number","null"], "default": 0.5},
+        "liquidity_need": {"type": ["number","null"], "default": 0.5}
       }
     }
   },
-  "required":["goal","timeline_years","loss_aversion","liquidity_need",
-              "income_stability","knowledge_level"]
+  "required": ["goal", "timeline_years", "loss_aversion", 
+               "liquidity_need", "income_stability", "knowledge_level"]
 }
-
 
 prompt = f"""
 Return ONLY valid JSON. JSON Schema:

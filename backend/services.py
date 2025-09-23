@@ -45,6 +45,37 @@ Conversation:
 Now produce the JSON object (no prose, no extra keys).
 """
 
+    def _normalize_llm_obj(self, obj: dict) -> dict:
+        # enums/strings
+        obj.setdefault("goal", "steady growth")
+
+        # timeline: coerce to float, fallback 5.0
+        v = obj.get("timeline_years")
+        try:
+            obj["timeline_years"] = float(v) if v not in (None, "") else 5.0
+        except Exception:
+            obj["timeline_years"] = 5.0
+
+        # categorical fallbacks (strings)
+        if obj.get("loss_aversion") in (None, ""):
+            obj["loss_aversion"] = "moderate"
+        if obj.get("liquidity_need") in (None, ""):
+            obj["liquidity_need"] = "moderate"
+        if obj.get("income_stability") in (None, ""):
+            obj["income_stability"] = "variable"
+        if obj.get("knowledge_level") in (None, ""):
+            obj["knowledge_level"] = "novice"
+
+        # confidences: ensure dict + numeric defaults
+        conf = obj.get("confidences") or {}
+        for k, default in (("timeline_years", 3.0), ("loss_aversion", 0.5), ("liquidity_need", 0.5)):
+            try:
+                conf[k] = float(conf.get(k)) if conf.get(k) not in (None, "") else default
+            except Exception:
+                conf[k] = default
+        obj["confidences"] = conf
+
+        return obj
     def generate_profile(self, answers: UserAnswers) -> ProfileResponse:
         """Generate risk profile from user answers"""
         prompt = self.create_prompt(answers)
@@ -53,12 +84,14 @@ Now produce the JSON object (no prose, no extra keys).
             # Call LLM using the same function from get_json.py
             raw = call_ollama(prompt)
             obj = json.loads(raw)
+            obj=self._normalize_llm_obj(obj)
             validate(instance=obj, schema=SCHEMA)
         except (json.JSONDecodeError, ValidationError) as e:
             # Retry once if validation fails (same logic as get_json.py)
-            retry_prompt = prompt + f"\nPrevious output failed schema validation: {e}. Return ONLY corrected JSON."
+            retry_prompt = prompt + f"\nPrevious output failed schema validation: {e}. Return ONLY corrected JSON.\n json.dumps(SCHEMA)"
             raw = call_ollama(retry_prompt)
             obj = json.loads(raw)
+            obj=self._normalize_llm_obj(obj)
             validate(instance=obj, schema=SCHEMA)
         except Exception as e:
             # If Ollama fails, provide a more helpful error
